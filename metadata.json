@@ -1,0 +1,7 @@
+{
+  "name": "Royal Clothing Boutique",
+  "description": "Elegant, premium women's clothing store in Sefrou, Morocco. Women-owned boutique featuring curated collections.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
