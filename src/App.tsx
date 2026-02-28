@@ -5,16 +5,17 @@
 
 import { motion, useScroll, useTransform, AnimatePresence, useSpring, useVelocity } from "motion/react";
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Wifi, 
-  User, 
-  Car, 
-  Recycle, 
-  ShoppingBag, 
-  Instagram, 
+import { supabase } from "./supabaseClient";
+import {
+  Phone,
+  MapPin,
+  Clock,
+  Wifi,
+  User,
+  Car,
+  Recycle,
+  ShoppingBag,
+  Instagram,
   Facebook,
   ArrowRight,
   CheckCircle2,
@@ -27,14 +28,8 @@ import {
   Youtube
 } from "lucide-react";
 
-const COLLECTIONS = [
-  { name: "Elegant Dresses", category: "Apparel", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800" },
-  { name: "Modern Sets", category: "Apparel", image: "https://images.unsplash.com/photo-1539109132382-381bb3f1c2b3?auto=format&fit=crop&q=80&w=800" },
-  { name: "Premium Jackets", category: "Outerwear", image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800" },
-  { name: "Traditional Abayas", category: "Heritage", image: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?auto=format&fit=crop&q=80&w=800" },
-  { name: "Casual Wear", category: "Everyday", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800" },
-  { name: "Chic Accessories", category: "Details", image: "https://images.unsplash.com/photo-1523206489230-c012c64b2b48?auto=format&fit=crop&q=80&w=800" },
-];
+type Collection = { name: string; category: string; image: string };
+type GalleryImage = { url: string; size: string; top: string; left: string; depth: number; direction: number; mobile: boolean };
 
 const FEATURES = [
   { icon: User, title: "Women-Owned", desc: "Proudly independent and women-led boutique." },
@@ -51,32 +46,6 @@ const TESTIMONIALS = [
   { text: "I love the sustainable approach and the beautiful abayas. A perfect blend of tradition and modern style.", author: "Fatima Zahra" },
 ];
 
-const GALLERY_IMAGES = [
-  { url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=800", size: "w-[320px] h-auto", top: "5%",  left: "2%",  depth: 1.10, direction:  -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=800", size: "w-[300px] h-auto", top: "15%", left: "55%", depth: 0.95, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=800", size: "w-[280px] h-auto", top: "10%", left: "72%", depth: 0.85, direction:  1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800", size: "w-[310px] h-auto", top: "25%", left: "30%", depth: 1.15, direction: -1,  mobile: true },
-
-  { url: "https://images.unsplash.com/photo-1539109132382-381bb3f1c2b3?auto=format&fit=crop&q=80&w=800", size: "w-[220px] h-auto", top: "35%", left: "42%", depth: 0.65, direction:  1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800", size: "w-[240px] h-auto", top: "40%", left: "5%",  depth: 0.70, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1523206489230-c012c64b2b48?auto=format&fit=crop&q=80&w=800", size: "w-[200px] h-auto", top: "50%", left: "22%", depth: 0.50, direction:  1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&q=80&w=800", size: "w-[260px] h-auto", top: "30%", left: "80%", depth: 0.80, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800", size: "w-[180px] h-auto", top: "45%", left: "50%", depth: 0.55, direction:  -1,  mobile: true },
-
-  { url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80&w=800", size: "w-[120px] h-auto", top: "60%", left: "88%", depth: 0.30, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1554412930-c74f639c9164?auto=format&fit=crop&q=80&w=800", size: "w-[150px] h-auto", top: "65%", left: "48%", depth: 0.45, direction:  1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&q=80&w=800", size: "w-[180px] h-auto", top: "75%", left: "85%", depth: 0.40, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1529139513466-4209121f31ee?auto=format&fit=crop&q=80&w=800", size: "w-[100px] h-auto", top: "70%", left: "60%", depth: 0.28, direction:  -1,  mobile: true },
-
-  { url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=800", size: "w-[80px]  h-auto", top: "80%", left: "55%", depth: 0.22, direction: -1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?auto=format&fit=crop&q=80&w=800", size: "w-[90px]  h-auto", top: "85%", left: "12%", depth: 0.26, direction:  1,  mobile: true },
-
-  // keep this one calmer even though it's large, because it's at 94% left (edge) so too much motion looks chaotic
-  { url: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&q=80&w=800", size: "w-[300px] h-auto", top: "18%", left: "94%", depth: 0.75, direction: -1,  mobile: true },
-
-  { url: "https://images.unsplash.com/photo-1537832816519-689ad163238b?auto=format&fit=crop&q=80&w=800", size: "w-[110px] h-auto", top: "78%", left: "68%", depth: 0.34, direction:  1,  mobile: true },
-  { url: "https://images.unsplash.com/photo-1505022610485-0249ba5b3675?auto=format&fit=crop&q=80&w=800", size: "w-[300px] h-auto", top: "18%", left: "15%", depth: 1.00, direction: -1,  mobile: true },
-];
 
 const imageReveal = {
   initial: { scale: 1.2, opacity: 0 },
@@ -144,7 +113,7 @@ function FlashingLogo() {
   return (
     <div className="flex flex-col gap-0 w-full">
       {words.map((word, wordIdx) => (
-        <h2 key={wordIdx} className="text-[18vw] font-serif leading-[0.75] tracking-tighter uppercase flex flex-wrap w-full justify-start">
+        <h2 key={wordIdx} className="text-[18vw] md:text-[11vw] lg:text-[15vw] font-serif leading-[0.75] tracking-tighter uppercase flex flex-wrap w-full justify-start">
           {word.split("").map((char, i) => {
             const charIdx = wordIdx === 0 ? i : words[0].length + i;
             return (
@@ -181,7 +150,7 @@ function CustomCursor() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isOverTestimonials, setIsOverTestimonials] = useState(false);
-  
+
   const springConfig = { damping: 20, stiffness: 400, mass: 0.3 };
   const cursorX = useSpring(0, springConfig);
   const cursorY = useSpring(0, springConfig);
@@ -191,7 +160,7 @@ function CustomCursor() {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
       setMousePos({ x: e.clientX, y: e.clientY });
-      
+
       const target = e.target as HTMLElement;
       const testimonialSection = target.closest('#testimonials-section');
       setIsOverTestimonials(!!testimonialSection);
@@ -214,7 +183,7 @@ function CustomCursor() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseover', handleHoverStart);
     window.addEventListener('mouseout', handleHoverEnd);
-    
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseover', handleHoverStart);
@@ -258,6 +227,38 @@ function CustomCursor() {
   );
 }
 
+function GalleryItem({ img, idx, galleryScroll }: { img: GalleryImage; idx: number; galleryScroll: any }) {
+  const rawY = useTransform(
+    galleryScroll,
+    [0, 1],
+    [img.direction * 600 * img.depth, -img.direction * 600 * img.depth]
+  );
+  const y = useSpring(rawY, { damping: 15, stiffness: 40, mass: 1.2 });
+
+  return (
+    <motion.div
+      style={{
+        top: img.top,
+        left: img.left,
+        y,
+        zIndex: Math.floor(img.depth * 100),
+      }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+      className={`absolute w-[200px] lg:w-[300px] h-auto rounded-lg overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.6)] ${!img.mobile ? 'hidden md:block' : 'block'}`}
+    >
+      <img
+        src={img.url}
+        alt={`Gallery ${idx}`}
+        className="w-full h-full object-cover transition-all duration-700"
+        referrerPolicy="no-referrer"
+      />
+    </motion.div>
+  );
+}
+
 export default function App() {
   const heroRef = useRef(null);
   const aboutRef = useRef(null);
@@ -270,7 +271,32 @@ export default function App() {
   const [isHoveringTestimonials, setIsHoveringTestimonials] = useState(false);
   const [arrowDirection, setArrowDirection] = useState<'left' | 'right'>('right');
   const [activeCollection, setActiveCollection] = useState(0);
-  
+
+  // Dynamic data from Supabase
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: collectionsData } = await supabase
+        .from('collections')
+        .select('name, category, image')
+        .order('id');
+      if (collectionsData && collectionsData.length > 0) {
+        setCollections(collectionsData);
+      }
+
+      const { data: galleryData } = await supabase
+        .from('gallery_images')
+        .select('url, size, top, left, depth, direction, mobile')
+        .order('id');
+      if (galleryData && galleryData.length > 0) {
+        setGalleryImages(galleryData);
+      }
+    }
+    fetchData();
+  }, []);
+
   const { scrollYProgress: heroScroll } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
@@ -286,25 +312,32 @@ export default function App() {
     offset: ["start end", "end start"]
   });
 
-  const { scrollYProgress: collectionsScroll } = useScroll({
-    target: collectionsRef,
-    offset: ["start start", "end end"]
-  });
-
   useEffect(() => {
-    return collectionsScroll.on("change", (latest) => {
-      const index = Math.min(
-        Math.floor(latest * COLLECTIONS.length),
-        COLLECTIONS.length - 1
-      );
-      setActiveCollection(index);
-    });
-  }, [collectionsScroll]);
+    const isLg = window.matchMedia('(min-width: 1024px)').matches;
+    if (!isLg) return; // On mobile, only arrow clicks change collections
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.getAttribute('data-collection-idx'));
+            if (!isNaN(idx)) setActiveCollection(idx);
+          }
+        });
+      },
+      { rootMargin: '-50% 0px -50% 0px', threshold: 0 }
+    );
+
+    const titles = document.querySelectorAll('[data-collection-idx]');
+    titles.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [collections]);
 
   const heroTextY = useTransform(heroScroll, [0, 1], [0, 200]);
   const heroImageY = useTransform(heroScroll, [0, 1], [0, -100]);
   const heroOpacity = useTransform(heroScroll, [0, 0.5], [1, 0]);
-  
+
   const testimonialBgY = useTransform(testimonialScroll, [0, 1], ["-20%", "20%"]);
   const testimonialTextY = useTransform(testimonialScroll, [0, 1], [50, -50]);
 
@@ -314,7 +347,7 @@ export default function App() {
     const x = e.clientX;
     const y = e.clientY;
     setMousePos({ x, y });
-    
+
     const relativeX = x - rect.left;
     if (relativeX < rect.width / 2) {
       setArrowDirection('left');
@@ -337,26 +370,26 @@ export default function App() {
     <div className="min-h-screen selection:bg-accent selection:text-white bg-white">
       <Preloader />
       <CustomCursor />
-      
+
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 mix-blend-difference text-white">
         <div className="max-w-[1800px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="text-2xl font-serif font-bold tracking-tighter"
           >
             ROYAL CLOTHING
           </motion.div>
-          
+
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-12 text-[10px] font-medium uppercase tracking-[0.3em]">
               <a href="#collections" className="hover:text-accent transition-colors">Collections</a>
               <a href="#about" className="hover:text-accent transition-colors">About</a>
               <a href="#contact" className="hover:text-accent transition-colors">Contact</a>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 hover:bg-white/10 rounded-full transition-all md:hidden flex flex-col gap-1.5 items-end"
             >
@@ -364,8 +397,8 @@ export default function App() {
               <div className={`h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'w-4'}`} />
               <div className={`h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'w-6 -rotate-45 -translate-y-2' : 'w-6'}`} />
             </button>
-            
-            <motion.a 
+
+            <motion.a
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               href="tel:+212653929954"
@@ -387,35 +420,35 @@ export default function App() {
             className="fixed inset-0 z-[45] bg-white flex flex-col items-center justify-center"
           >
             <div className="flex flex-col items-center gap-8 text-4xl md:text-6xl font-serif text-primary uppercase tracking-tighter">
-              <a 
-                href="#collections" 
+              <a
+                href="#collections"
                 onClick={() => setIsMenuOpen(false)}
                 className="hover:italic hover:text-accent transition-all"
               >
                 Collections
               </a>
-              <a 
-                href="#about" 
+              <a
+                href="#about"
                 onClick={() => setIsMenuOpen(false)}
                 className="hover:italic hover:text-accent transition-all"
               >
                 Services
               </a>
-              <a 
-                href="#about" 
+              <a
+                href="#about"
                 onClick={() => setIsMenuOpen(false)}
                 className="hover:italic hover:text-accent transition-all"
               >
                 Company
               </a>
-              <a 
-                href="#contact" 
+              <a
+                href="#contact"
                 onClick={() => setIsMenuOpen(false)}
                 className="hover:italic hover:text-accent transition-all"
               >
                 Contact
               </a>
-              <a 
+              <a
                 href="tel:+212653929954"
                 className="mt-4 text-[12px] font-medium uppercase tracking-[0.3em] bg-primary text-white px-10 py-4 rounded-full hover:bg-accent transition-all"
               >
@@ -429,9 +462,9 @@ export default function App() {
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-[110vh] flex items-center justify-start overflow-hidden bg-primary">
         <motion.div style={{ y: heroImageY, opacity: heroOpacity }} className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=2000" 
-            alt="Boutique" 
+          <img
+            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=2000"
+            alt="Boutique"
             className="w-full h-full object-cover brightness-[0.4]"
             referrerPolicy="no-referrer"
           />
@@ -460,17 +493,17 @@ export default function App() {
               </div>
             </h1>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
               className="mt-12 flex flex-wrap gap-8 items-center justify-start"
             >
-              <a 
+              <a
                 href="#collections"
                 className="group flex items-center gap-4 text-white text-[10px] font-medium uppercase tracking-[0.3em]"
               >
-                View our collections 
+                View our collections
                 <div className="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center group-hover:bg-transparent group-hover:text-white border border-white transition-all">
                   <ArrowRight className="w-4 h-4" />
                 </div>
@@ -496,7 +529,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 relative">
           <div className="grid md:grid-cols-2 gap-20 items-center">
             <div className="relative z-10">
-              <motion.h2 
+              <motion.h2
                 initial={{ opacity: 0, x: -40 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
@@ -504,7 +537,7 @@ export default function App() {
               >
                 Crafting <span className="italic text-accent">Elegance</span> Since Day One.
               </motion.h2>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, x: -40 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
@@ -521,20 +554,9 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.8, y: 40 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true }}
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-0 right-0 w-64 h-80 z-30 shadow-2xl rounded-lg overflow-hidden"
-              >
-                <img src="https://images.unsplash.com/photo-1539109132382-381bb3f1c2b3?auto=format&fit=crop&q=80&w=600" alt="About 1" className="w-full h-full object-cover" />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: 40 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true }}
                 animate={{ y: [0, 20, 0] }}
-                transition={{ 
-                  y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 },
+                transition={{
+                  y: { duration: 5, ease: "easeInOut", delay: 1 },
                   opacity: { duration: 0.8, delay: 0.2 },
                   scale: { duration: 0.8, delay: 0.2 }
                 }}
@@ -548,8 +570,8 @@ export default function App() {
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true }}
                 animate={{ y: [0, -15, 0] }}
-                transition={{ 
-                  y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
+                transition={{
+                  y: { duration: 7, ease: "easeInOut", delay: 0.5 },
                   opacity: { duration: 0.8, delay: 0.4 },
                   scale: { duration: 0.8, delay: 0.4 }
                 }}
@@ -562,48 +584,12 @@ export default function App() {
         </div>
       </section>
 
-      {/* Intro Section */}
-      <section className="py-40 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid md:grid-cols-2 gap-20 items-start">
-            <motion.h2 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-5xl md:text-7xl font-serif text-primary leading-[1.1] tracking-tight"
-            >
-              Find the perfect <br />
-              <span className="italic text-accent">vibe</span> for your <br />
-              wardrobe.
-            </motion.h2>
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="pt-4"
-            >
-              <p className="text-xl text-primary/60 leading-relaxed mb-12 max-w-md">
-                We apply storytelling and design to create groovy experiences through fashion. Every piece is selected to empower and inspire.
-              </p>
-              <a 
-                href="#about"
-                className="inline-flex items-center gap-4 text-[10px] font-medium uppercase tracking-[0.3em] text-primary group"
-              >
-                About our team
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-              </a>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* Collections Section - Sticky Preview Style */}
-      <section id="collections" ref={collectionsRef} className="py-40 bg-white">
+      <section id="collections" ref={collectionsRef} className="py-40 bg-white lg:h-[260vh]">
         <div className="max-w-[1800px] mx-auto px-6 md:px-12">
           <div className="flex flex-col lg:flex-row gap-20">
-            {/* Sticky Image Side */}
-            <div className="lg:w-1/2 lg:sticky lg:top-40 lg:h-[70vh] order-2 lg:order-1">
+            {/* Sticky Image Side - hidden on mobile */}
+            <div className="hidden lg:block lg:w-1/2 lg:sticky lg:top-24 lg:self-start lg:h-[70vh] order-2 lg:order-1">
               <div className="relative w-full h-full overflow-hidden rounded-2xl bg-primary/5">
                 <AnimatePresence mode="wait">
                   <motion.img
@@ -612,18 +598,18 @@ export default function App() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    src={COLLECTIONS[activeCollection].image}
-                    alt={COLLECTIONS[activeCollection].name}
+                    src={collections[activeCollection]?.image}
+                    alt={collections[activeCollection]?.name}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
                 </AnimatePresence>
                 <div className="absolute bottom-8 left-8 z-10">
                   <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60 mb-2 block">
-                    {COLLECTIONS[activeCollection].category} • 2026
+                    {collections[activeCollection]?.category} • 2026
                   </span>
                   <h3 className="text-4xl font-serif text-white tracking-tight">
-                    {COLLECTIONS[activeCollection].name}
+                    {collections[activeCollection]?.name}
                   </h3>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -639,14 +625,18 @@ export default function App() {
                 <p className="text-xl text-primary/60 max-w-md">
                   Explore our curated selections, where each piece tells a story of elegance and heritage.
                 </p>
+                <p className="text-xs text-primary/30 mt-4 lg:hidden">
+                  Tap the arrow to preview each collection
+                </p>
               </div>
-              
+
               <div className="flex flex-col">
-                {COLLECTIONS.map((item, idx) => (
+                {collections.map((item, idx) => (
                   <motion.div
                     key={idx}
+                    data-collection-idx={idx}
                     onMouseEnter={() => setActiveCollection(idx)}
-                    className={`py-12 border-b border-primary/10 cursor-pointer group transition-all duration-500 ${activeCollection === idx ? 'opacity-100' : 'opacity-30'}`}
+                    className={`py-12 border-b border-primary/10 group transition-all duration-500 ${activeCollection === idx ? 'opacity-100' : 'opacity-30'}`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-baseline gap-8">
@@ -655,11 +645,47 @@ export default function App() {
                           {item.name}
                         </h3>
                       </div>
-                      <ArrowUpRight className={`w-8 h-8 transition-transform duration-500 ${activeCollection === idx ? 'rotate-0' : '-rotate-45'}`} />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveCollection(activeCollection === idx ? -1 : idx);
+                        }}
+                        className="lg:pointer-events-none"
+                      >
+                        <ArrowUpRight className={`w-8 h-8 transition-transform duration-500 ${activeCollection === idx ? 'rotate-0' : '-rotate-45'}`} />
+                      </button>
                     </div>
+
+                    {/* Mobile accordion image */}
+                    <AnimatePresence>
+                      {activeCollection === idx && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                          className="overflow-hidden lg:hidden"
+                        >
+                          <div className="relative mt-6 rounded-xl overflow-hidden aspect-[4/5]">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                            <span className="absolute bottom-4 left-4 text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
+                              {item.category} • 2026
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 ))}
               </div>
+              {/* Spacer so the last collection stays visible before section ends */}
+              <div className="hidden lg:block h-[5vh]" />
             </div>
           </div>
         </div>
@@ -673,10 +699,10 @@ export default function App() {
               We apply <span className="italic text-accent">storytelling</span> to fashion.
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
             {FEATURES.map((feature, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -694,27 +720,27 @@ export default function App() {
       </section>
 
       {/* Testimonial Section - RYTHM Style Slider with Custom Cursor */}
-      <section 
+      <section
         id="testimonials-section"
-        ref={testimonialRef} 
+        ref={testimonialRef}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHoveringTestimonials(true)}
         onMouseLeave={() => setIsHoveringTestimonials(false)}
         onClick={nextTestimonial}
         className="relative min-h-[100vh] flex items-center justify-center overflow-hidden cursor-pointer"
       >
-        <motion.div 
+        <motion.div
           style={{ y: testimonialBgY }}
           className="absolute inset-0 z-0 h-[140%] -top-[20%]"
         >
-          <img 
-            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&get=80&w=2000" 
-            alt="Fashion Background" 
+          <img
+            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&get=80&w=2000"
+            alt="Fashion Background"
             className="w-full h-full object-cover brightness-[0.4]"
             referrerPolicy="no-referrer"
           />
         </motion.div>
-        
+
         {/* Testimonial specific custom cursor */}
         <AnimatePresence>
           {isHoveringTestimonials && (
@@ -739,7 +765,7 @@ export default function App() {
             <ArrowRight className="w-6 h-6" />
           </button>
         </div>
-        
+
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center py-40">
           <AnimatePresence mode="wait">
             <motion.div
@@ -749,7 +775,7 @@ export default function App() {
               exit={{ opacity: 0, x: arrowDirection === 'right' ? -50 : 50 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             >
-              <motion.p 
+              <motion.p
                 className="text-3xl md:text-5xl lg:text-6xl font-serif text-white leading-[1.2] tracking-tight mb-12"
                 style={{ y: testimonialTextY }}
               >
@@ -765,46 +791,15 @@ export default function App() {
       </section>
 
       {/* Gallery Section - Floating Images with Scroll-Driven Parallax */}
-      <section ref={galleryRef} className="relative h-[140vh] bg-primary overflow-hidden">
+      <section ref={galleryRef} className="relative h-screen lg:h-[160vh] bg-primary overflow-hidden">
         <div className="sticky top-0 h-screen flex items-center justify-center">
           <h2 className="text-white/5 text-[25vw] font-serif uppercase tracking-tighter select-none pointer-events-none">
             Gallery
           </h2>
-          
-          {GALLERY_IMAGES.map((img, idx) => {
-            // Calculate parallax movement based on depth and direction
-            // Higher depth = faster movement (closer to viewer)
-            // Direction 1 = top to bottom, -1 = bottom to top
-            const y = useTransform(
-              galleryScroll, 
-              [0, 1], 
-              [img.direction * 600 * img.depth, -img.direction * 600 * img.depth]
-            );
 
-            return (
-              <motion.div
-                key={idx}
-                style={{
-                  top: img.top,
-                  left: img.left,
-                  y,
-                  zIndex: Math.floor(img.depth * 100),
-                }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className={`absolute ${img.size} rounded-lg overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.6)] ${!img.mobile ? 'hidden md:block' : 'block'}`}
-              >
-                <img
-                  src={img.url}
-                  alt={`Gallery ${idx}`}
-                  className="w-full h-full object-cover transition-all duration-700"
-                  referrerPolicy="no-referrer"
-                />
-              </motion.div>
-            );
-          })}
+          {galleryImages.map((img, idx) => (
+            <GalleryItem key={idx} img={img} idx={idx} galleryScroll={galleryScroll} />
+          ))}
         </div>
       </section>
 
@@ -835,14 +830,14 @@ export default function App() {
             </div>
 
             <div className="space-y-12 w-full">
-              <div className="aspect-video bg-primary/5 rounded-2xl overflow-hidden relative group w-screen -mx-6 md:w-full md:mx-0">
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3072.6691669010797!2d-4.8333569017951765!3d33.829347199999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd9f9b830bb24e9f%3A0x803cfd5dc1f4320f!2sROYAL%20CLOTHING!5e1!3m2!1sen!2sma!4v1772206536350!5m2!1sen!2sma" 
-                  width="100%" 
-                  height="100%" 
-                  style={{ border: 0 }} 
-                  allowFullScreen={true} 
-                  loading="lazy" 
+              <div className="aspect-video bg-primary/5 rounded-2xl overflow-hidden relative group w-full md:mx-0">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3072.6691669010797!2d-4.8333569017951765!3d33.829347199999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd9f9b830bb24e9f%3A0x803cfd5dc1f4320f!2sROYAL%20CLOTHING!5e1!3m2!1sen!2sma!4v1772206536350!5m2!1sen!2sma"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={true}
+                  loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 ></iframe>
               </div>
@@ -874,10 +869,6 @@ export default function App() {
           </div>
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] text-white/20 uppercase tracking-[0.3em]">
             <p>&copy; {new Date().getFullYear()} Royal Clothing Boutique.</p>
-            <div className="flex gap-12">
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            </div>
             <p>Sefrou, Morocco</p>
           </div>
         </div>
