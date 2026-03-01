@@ -200,7 +200,7 @@ function CustomCursor() {
         translateY: "-50%",
         opacity: isOverTestimonials ? 0 : 1,
       }}
-      className="fixed top-0 left-0 z-[9999] pointer-events-none flex items-center justify-center cursor-blend"
+      className="fixed top-0 left-0 z-[9999] pointer-events-none hidden md:flex items-center justify-center cursor-blend"
     >
       <motion.div
         animate={{
@@ -756,15 +756,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Mobile Navigation Arrows */}
-        <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 flex justify-between md:hidden z-20">
-          <button onClick={(e) => { e.stopPropagation(); setArrowDirection('left'); nextTestimonial(); }} className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); setArrowDirection('right'); nextTestimonial(); }} className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
-            <ArrowRight className="w-6 h-6" />
-          </button>
-        </div>
+
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center py-40">
           <AnimatePresence mode="wait">
@@ -784,6 +776,15 @@ export default function App() {
               <div>
                 <h4 className="text-white font-serif text-xl">{TESTIMONIALS[currentTestimonial].author}</h4>
                 <p className="text-accent text-[10px] uppercase tracking-[0.2em] mt-1">Verified Customer</p>
+                {/* Mobile Navigation Arrows - centered under author */}
+                <div className="flex items-center justify-center gap-6 mt-6 md:hidden">
+                  <button onClick={(e) => { e.stopPropagation(); setArrowDirection('left'); nextTestimonial(); }} className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); setArrowDirection('right'); nextTestimonial(); }} className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
